@@ -1,18 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="se.juneday.throwaway.cavesandmore.MainActivity">
 
+
     <TextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_weight="2" />
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="100dp"
+        android:orientation="horizontal"
+        >
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="north"
+            android:id="@+id/north_button"
+            android:onClick="goNorth"
+            android:background="@drawable/ic_keyboard_arrow_up_black_24dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="goSouth"
+            android:id="@+id/south_button"
+            android:background="@drawable/ic_keyboard_arrow_down_black_24dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true" />
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="goWest"
+            android:id="@+id/west_button"
+            android:background="@drawable/ic_keyboard_arrow_left_black_24dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            />
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="goEast"
+            android:id="@+id/east_button"
+            android:background="@drawable/ic_keyboard_arrow_right_black_24dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            />
+
+    </RelativeLayout>
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:layout_weight="0"
+        android:orientation="horizontal">
 
-</android.support.constraint.ConstraintLayout>
+        <ListView
+            android:layout_weight="1"
+            android:id="@+id/things"
+            android:layout_width="wrap_content"
+            android:layout_height="400dp">
+        </ListView>
+
+        <ListView
+            android:layout_weight="1"
+            android:id="@+id/inventory"
+            android:layout_width="wrap_content"
+            android:layout_height="400dp">
+        </ListView>
+    </LinearLayout>
+
+
+
+</LinearLayout>
