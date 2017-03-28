@@ -32,6 +32,11 @@ public class MainActivity extends AppCompatActivity {
     private List<Thing> things;
     private List<Thing> inventory;
 
+    private void setListViewHeader(ListView lv, String header) {
+        TextView inventoryHeader = new TextView(this);
+        inventoryHeader.setText(header);
+        lv.addHeaderView(inventoryHeader, null, false);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,24 +48,14 @@ public class MainActivity extends AppCompatActivity {
         Log.d(LOG_TAG, "player: " + player);
 
         inventory = player.inventory();
-        Log.d(LOG_TAG, "inventory: " + inventory);
         inventoryView = (ListView) findViewById(R.id.inventory);
-        inventoryAdapater = new ArrayAdapter<Thing>(this,
-                android.R.layout.simple_list_item_1, inventory);
-        inventoryView.setAdapter(inventoryAdapater);
-        TextView inventoryHeader = new TextView(this);
-        inventoryHeader.setText("Player items");
-        inventoryView.addHeaderView(inventoryHeader, null, false);
+        inventoryAdapater = resetAdapter(inventoryView, inventory);
+        setListViewHeader(inventoryView, "Player items");
 
         things = player.currentRoom().things();
-        Log.d(LOG_TAG, "things: " + things);
         thingsView = (ListView) findViewById(R.id.things);
-        thingsAdapater = new ArrayAdapter<Thing>(this,
-                android.R.layout.simple_list_item_1, things);
-        thingsView.setAdapter(thingsAdapater);
-        TextView thingsHeader = new TextView(this);
-        thingsHeader.setText("Room items");
-        thingsView.addHeaderView(thingsHeader, null, false);
+        thingsAdapater = resetAdapter(thingsView,things);
+        setListViewHeader(thingsView, "Room items");
 
         inventoryView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
@@ -72,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
                 thingsView.invalidateViews();
             }
         });
-        thingsView.setOnItemClickListener(new ListView.OnItemClickListener() {
+/*        thingsView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Log.d(LOG_TAG,
@@ -83,6 +78,16 @@ public class MainActivity extends AppCompatActivity {
                 inventoryView.invalidateViews();
                 thingsView.invalidateViews();
             }
+        });
+        */
+        thingsView.setOnItemClickListener( (adapterView, view, i, l) -> {
+            Log.d(LOG_TAG,
+                    "item clicked, pos:" + i + " l: " + l);
+            Log.d(LOG_TAG,
+                    "item clicked, pos:" + i + " l: " + l + " " + player.currentRoom().things().get((int) l));
+            player.takeThing(things.get((int) l));
+            inventoryView.invalidateViews();
+            thingsView.invalidateViews();
         });
     }
 
@@ -99,7 +104,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateDescription(String description) {
+    private void updateGui() {
+        String description = player.currentRoom().description();
         inventory = player.inventory();
         things = player.currentRoom().things();
         Log.d(LOG_TAG, "    -------------------------");
@@ -117,21 +123,17 @@ public class MainActivity extends AppCompatActivity {
         TextView tv = (TextView) findViewById(R.id.description);
         tv.setText(description);
 
-/*        inventoryView.invalidateViews();
-        thingsView.invalidateViews();
-*/
 
-        thingsView.setAdapter(null);
-        thingsAdapater = new ArrayAdapter<Thing>(this,
-                android.R.layout.simple_list_item_1, things);
-        thingsView.setAdapter(thingsAdapater);
+        thingsAdapater = resetAdapter(thingsView,things);
+    }
 
-        thingsAdapater.notifyDataSetChanged();
-        inventoryAdapater.notifyDataSetChanged();
-
-        inventoryView.invalidateViews();
-        thingsView.invalidateViews();
-
+    private ArrayAdapter<Thing> resetAdapter(ListView lv, List<Thing> things) {
+        lv.setAdapter(null);
+        ArrayAdapter<Thing> adapter = new ArrayAdapter<Thing>(this,
+                        android.R.layout.simple_list_item_1, things);
+        lv.setAdapter(adapter);
+        lv.invalidateViews();
+        return adapter;
     }
 
     public void goDir(Room.Direction dir) {
@@ -139,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(LOG_TAG, "    player: " + player);
         player.go(dir);
         Log.d(LOG_TAG, "    player: " + player);
-        updateDescription(player.currentRoom().description());
+        updateGui();
         Log.d(LOG_TAG, "<-- goDir " + dir);
     }
 

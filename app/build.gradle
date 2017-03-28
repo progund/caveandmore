@@ -5,7 +5,7 @@ android {
     buildToolsVersion "25.0.0"
     defaultConfig {
         applicationId "se.juneday.throwaway.cavesandmore"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -25,7 +25,8 @@ android {
         targetCompatibility 1.8
         sourceCompatibility 1.8
     }
-
+    productFlavors {
+    }
 }
 
 dependencies {
