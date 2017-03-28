@@ -1,0 +1,3 @@
+[submodule "libcave"]
+	path = libcave
+	url = git@github.com:progund/TIG059-game.git

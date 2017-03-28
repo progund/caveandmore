@@ -32,6 +32,9 @@ public class MainActivity extends AppCompatActivity {
     private List<Thing> things;
     private List<Thing> inventory;
 
+
+    private enum ClickType { TAKE, DROP ; }
+    
     private void setListViewHeader(ListView lv, String header) {
         TextView inventoryHeader = new TextView(this);
         inventoryHeader.setText(header);
@@ -57,51 +60,33 @@ public class MainActivity extends AppCompatActivity {
         thingsAdapater = resetAdapter(thingsView,things);
         setListViewHeader(thingsView, "Room items");
 
-        inventoryView.setOnItemClickListener(new ListView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.d(LOG_TAG,
-                        "item clicked, pos:" + i + " l: " + l + " " + inventory.get((int)l));
-                player.dropThing(inventory.get((int)l));
-                inventoryView.invalidateViews();
-                thingsView.invalidateViews();
-            }
-        });
-/*        thingsView.setOnItemClickListener(new ListView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.d(LOG_TAG,
-                        "item clicked, pos:" + i + " l: " + l );
-                Log.d(LOG_TAG,
-                        "item clicked, pos:" + i + " l: " + l + " " + player.currentRoom().things().get((int)l));
-                player.takeThing(things.get((int)l));
-                inventoryView.invalidateViews();
-                thingsView.invalidateViews();
-            }
-        });
-        */
+        // set click listeners for inventory and room item list
+        inventoryView.setOnItemClickListener( (adapterView, view, i, l) -> { 
+                handleThingClick(DROP, (int) l); } );
         thingsView.setOnItemClickListener( (adapterView, view, i, l) -> {
-            Log.d(LOG_TAG,
-                    "item clicked, pos:" + i + " l: " + l);
-            Log.d(LOG_TAG,
-                    "item clicked, pos:" + i + " l: " + l + " " + player.currentRoom().things().get((int) l));
-            player.takeThing(things.get((int) l));
-            inventoryView.invalidateViews();
-            thingsView.invalidateViews();
-        });
+                handleThingClick(TAKE, (int) l); } );
     }
 
+    private handleThingClick(ClickType ct , int itemIndex) {
+        switch (ct) {
+        case TAKE:
+            player.takeThing(things.get((int) l));
+            break;
+        case DROP:
+            player.dropThing(inventory.get((int) l));
+            break;
+        default:
+            throw new IllegalArgumentException("Unknown ClikcType: " + ct);
+        }
+        inventoryView.invalidateViews();
+        thingsView.invalidateViews();
+    }
+    
     private void updateImageButton(int buttonId, Room.Direction direction) {
         ImageButton ib = ((ImageButton)findViewById(buttonId));
         boolean state = player.currentRoom().getRoom(direction)!=null;
-        ib.setClickable(state);
-        Log.d(LOG_TAG, " room:  " + player.currentRoom());
-        Log.d(LOG_TAG, " imagebutton for " + direction + " (" + state + "): " + player.currentRoom().getRoom(direction) );
-        if (state) {
-            ib.getBackground().setAlpha(255);          ;
-        } else {
-            ib.getBackground().setAlpha(32);          ;
-        }
+        ib.getBackground().setAlpha(state ? 255 : 32);
+        ib.setClickable(state);        
     }
 
     private void updateGui() {
@@ -122,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
 
         TextView tv = (TextView) findViewById(R.id.description);
         tv.setText(description);
-
 
         thingsAdapater = resetAdapter(thingsView,things);
     }
@@ -148,12 +132,15 @@ public class MainActivity extends AppCompatActivity {
     public void goWest(View v) {
         goDir(Room.Direction.WEST);
     }
+
     public void goEast(View v) {
         goDir(Room.Direction.EAST);
     }
+
     public void goNorth(View v) {
         goDir(Room.Direction.NORTH);
     }
+    
     public void goSouth(View v) {
         goDir(Room.Direction.SOUTH);
     }
