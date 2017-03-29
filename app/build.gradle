@@ -27,6 +27,20 @@ android {
     }
     productFlavors {
     }
+
+
+    sourceSets {
+        main {
+            java {
+                exclude '**/TestThingRule.java'
+            }
+        }
+        androidTest {
+            java {
+                exclude '**/TestSomeExcludedClass.java'
+            }
+        }
+    }
 }
 
 dependencies {
@@ -37,5 +51,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.1'
     testCompile 'junit:junit:4.12'
-    compile project(':libcave')
+    compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:+'
+    compile 'org.sqldroid:sqldroid:1.0.3'
+//    compile files('libs/sqlite-jdbc-3.16.1.jar')
 }
+

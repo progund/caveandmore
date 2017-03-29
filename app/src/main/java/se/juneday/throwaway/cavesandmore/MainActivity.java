@@ -1,22 +1,26 @@
 package se.juneday.throwaway.cavesandmore;
 
-import android.media.Image;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import se.itu.game.cave.Player;
 import se.itu.game.cave.Room;
 import se.itu.game.cave.Thing;
+import se.itu.game.cave.init.CaveInitializer;
 import se.itu.game.test.TestUtils;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,8 +36,29 @@ public class MainActivity extends AppCompatActivity {
     private List<Thing> things;
     private List<Thing> inventory;
 
+    private final static String CAVE_DB = "/data/data/se.juneday.throwaway.cavesandmore/cave.db";
+    private final static String ASSET_DB = "cavedatabas.db";
 
-    private enum ClickType { TAKE, DROP ; }
+    enum ClickType { TAKE, DROP ; }
+
+    private void asstDbToFile() throws IOException {
+        if (new File(CAVE_DB).isFile()) {
+            Log.d(LOG_TAG, "Not extracting db from asset");
+            return;
+        }
+        final InputStream inputStream = getAssets().open(ASSET_DB);
+        final OutputStream fileStream = new FileOutputStream(CAVE_DB);
+
+        final byte[] buffer = new byte[1024];
+        int length;
+        while ((length = inputStream.read(buffer)) > 0) {
+            fileStream.write(buffer, 0, length);
+        }
+
+        fileStream.flush();
+        fileStream.close();
+        inputStream.close();
+    }
     
     private void setListViewHeader(ListView lv, String header) {
         TextView inventoryHeader = new TextView(this);
@@ -41,39 +66,60 @@ public class MainActivity extends AppCompatActivity {
         lv.addHeaderView(inventoryHeader, null, false);
     }
 
+    private void showToast(String msg) {
+        Toast toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
+        toast.show();
+        Log.d(LOG_TAG, "showToast: " + msg);
+    }
+
+    private void setupGame() {
+        try {
+            asstDbToFile();
+            CaveInitializer init;
+            init = CaveInitializer.getInstance();
+            init.initAll();
+            player = Player.getInstance(init.getFirstRoom());
+            showToast("Full version");
+        } catch (Exception e) {
+            Room startingRoom = TestUtils.getTest1Cave();
+            player = Player.getInstance(startingRoom);
+            showToast("Test version");
+        }
+        inventory = player.inventory();
+        things = player.currentRoom().things();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Room startingRoom = TestUtils.getTest1Cave();
-        player = Player.getInstance(startingRoom);
-        Log.d(LOG_TAG, "player: " + player);
+        setupGame();
 
-        inventory = player.inventory();
         inventoryView = (ListView) findViewById(R.id.inventory);
         inventoryAdapater = resetAdapter(inventoryView, inventory);
         setListViewHeader(inventoryView, "Player items");
 
-        things = player.currentRoom().things();
         thingsView = (ListView) findViewById(R.id.things);
         thingsAdapater = resetAdapter(thingsView,things);
         setListViewHeader(thingsView, "Room items");
 
         // set click listeners for inventory and room item list
         inventoryView.setOnItemClickListener( (adapterView, view, i, l) -> { 
-                handleThingClick(DROP, (int) l); } );
+                handleThingClick(ClickType.DROP, (int) l);
+        });
         thingsView.setOnItemClickListener( (adapterView, view, i, l) -> {
-                handleThingClick(TAKE, (int) l); } );
+                handleThingClick(ClickType.TAKE, (int) l);
+        });
     }
 
-    private handleThingClick(ClickType ct , int itemIndex) {
+    private void handleThingClick(ClickType ct , int itemIndex) {
         switch (ct) {
         case TAKE:
-            player.takeThing(things.get((int) l));
+            player.takeThing(things.get(itemIndex));
             break;
         case DROP:
-            player.dropThing(inventory.get((int) l));
+            player.dropThing(inventory.get(itemIndex));
             break;
         default:
             throw new IllegalArgumentException("Unknown ClikcType: " + ct);
@@ -93,12 +139,12 @@ public class MainActivity extends AppCompatActivity {
         String description = player.currentRoom().description();
         inventory = player.inventory();
         things = player.currentRoom().things();
-        Log.d(LOG_TAG, "    -------------------------");
-        Log.d(LOG_TAG, "    player: " + player);
-        Log.d(LOG_TAG, "    inventory: " + inventory);
-        Log.d(LOG_TAG, "    things: " + things);
-        Log.d(LOG_TAG, "    room: " + player.currentRoom());
-        Log.d(LOG_TAG, "    -------------------------");
+        Log.d(LOG_TAG, "    /------------------------");
+        Log.d(LOG_TAG, "    | player: " + player);
+        Log.d(LOG_TAG, "    | inventory: " + inventory);
+        Log.d(LOG_TAG, "    | things: " + things);
+        Log.d(LOG_TAG, "    | room: " + player.currentRoom());
+        Log.d(LOG_TAG, "    \\------------------------");
 
         updateImageButton(R.id.north_button, Room.Direction.NORTH);
         updateImageButton(R.id.east_button, Room.Direction.EAST);
@@ -121,12 +167,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void goDir(Room.Direction dir) {
-        Log.d(LOG_TAG, "--> goDir " + dir);
-        Log.d(LOG_TAG, "    player: " + player);
         player.go(dir);
-        Log.d(LOG_TAG, "    player: " + player);
         updateGui();
-        Log.d(LOG_TAG, "<-- goDir " + dir);
     }
 
     public void goWest(View v) {
